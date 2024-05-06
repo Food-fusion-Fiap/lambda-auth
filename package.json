@@ -1,0 +1,16 @@
+{
+  "name": "lambda-auth",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "npm install && node tasks/build",
+    "start": "node dist/app/index.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-ssm": "^3.556.0",
+    "pg": "^8.11.5",
+    "source-map-support": "^0.5.21"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.6"
+  }
+}

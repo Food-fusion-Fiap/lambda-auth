@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "declaration": false,
+    "strict": true,
+    "strictNullChecks": false,
+    "target": "ESNext",
+    "module": "commonjs",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": false,
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "inlineSourceMap": true,
+    "rootDir": ".",
+    "baseUrl": ".",
+    "typeRoots": [
+      "./node_modules/@types"
+    ]
+  },
+  "include": [
+    "app/**/*.ts"
+  ]
+}
