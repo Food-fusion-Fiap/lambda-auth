@@ -54,7 +54,6 @@ type EventData = {
 // Função Lambda
 export const handler = async (event: EventData) => {
   const { cpf } = event;
-
   const config = await getConfig();
 
   // Configurações do banco de dados
@@ -68,9 +67,6 @@ export const handler = async (event: EventData) => {
   await client.connect();
 
   try {
-    // INSERT
-    const insertQuery = 'INSERT INTO users (cpf) VALUES ($1)';
-    await client.query(insertQuery, [cpf]);
     const query = 'SELECT * FROM users WHERE cpf = $1';
     const result = await client.query(query, [cpf]);
 
