@@ -11,7 +11,7 @@ const ssmClient = new SSMClient({ region: 'us-east-1' });
 // Função para obter parâmetro do SSM
 async function getSSMParameter(parameterName: string): Promise<string> {
   const command = new GetParameterCommand({
-    Name: `food_fusion/${parameterName}`,
+    Name: `/food_fusion/${parameterName}`,
     WithDecryption: true
   });
 
