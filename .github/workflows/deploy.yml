@@ -1,0 +1,15 @@
+name: Trigger Terraform Workflow
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  trigger_another_workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Terraform Workflow
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          repository: CAVAh/terraform-lambda
+          event-type: trigger-terraform

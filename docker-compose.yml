@@ -1,0 +1,11 @@
+services:
+  lambda-auth:
+    restart: always
+    user: "1000:1000"
+    build:
+      context: .
+      target: lambda
+    ports:
+      - 9000:9000
+    volumes:
+      - ".:/application"
