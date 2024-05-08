@@ -36,7 +36,7 @@ async function getConfig() {
 
   console.log('Obtendo configurações do banco de dados...');
 
-  const RDS_ENDPOINT = await getSSMParameter('db_host');
+  const RDS_ENDPOINT = (await getSSMParameter('db_host')).replace(':5432', '');
   console.log('RDS_ENDPOINT:', RDS_ENDPOINT);
   const RDS_DATABASE_NAME = await getSSMParameter('db_name');
   const RDS_USER = await getSSMParameter('db_username');
