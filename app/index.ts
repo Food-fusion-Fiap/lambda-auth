@@ -12,7 +12,7 @@ const ssmClient = new SSMClient({ region: 'us-east-1' });
 async function getSSMParameter(parameterName: string): Promise<string> {
   const command = new GetParameterCommand({
     Name: `/food_fusion/${parameterName}`,
-    WithDecryption: true
+    WithDecryption: true,
   });
 
   const response = await ssmClient.send(command);
@@ -27,14 +27,17 @@ async function getSSMParameter(parameterName: string): Promise<string> {
 async function getConfig() {
   if (env === 'development') {
     return {
-      RDS_ENDPOINT: 'localhost',
+      RDS_ENDPOINT: 'postgres.cl4qcumy8f7j.us-east-1.rds.amazonaws.com',
       RDS_DATABASE_NAME: 'postgres',
       RDS_USER: 'postgres',
-      RDS_PASSWORD: '12345678',
+      RDS_PASSWORD: 'foobarbaz',
     }
   }
 
+  console.log('Obtendo configurações do banco de dados...');
+
   const RDS_ENDPOINT = await getSSMParameter('db_host');
+  console.log('RDS_ENDPOINT:', RDS_ENDPOINT);
   const RDS_DATABASE_NAME = await getSSMParameter('db_name');
   const RDS_USER = await getSSMParameter('db_username');
   const RDS_PASSWORD = await getSSMParameter('db_password');
@@ -53,24 +56,48 @@ type EventData = {
 
 // Função Lambda
 export const handler = async (event: EventData) => {
+  console.log('Iniciando função Lambda...', event);
+
   const { cpf } = event;
 
-  const config = await getConfig();
+  let config;
 
-  // Configurações do banco de dados
+  // Obter configurações do banco de dados
+  try {
+    config = await getConfig();
+
+    console.log('Configurações do banco de dados:', config);
+  } catch (error) {
+    console.error('Erro ao obter configurações do banco de dados:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Ocorreu um erro ao buscar as configurações do banco de dados.' }),
+    };
+  }
+
+  // Conecta ao banco de dados
   const client = new Client({
     host: config.RDS_ENDPOINT,
     database: config.RDS_DATABASE_NAME,
     user: config.RDS_USER,
     password: config.RDS_PASSWORD,
     port: 5432,
+    ssl: {
+      rejectUnauthorized: false
+    }
   });
-  await client.connect();
 
   try {
-    // INSERT
-    const insertQuery = 'INSERT INTO users (cpf) VALUES ($1)';
-    await client.query(insertQuery, [cpf]);
+    await client.connect();
+  } catch (error) {
+    console.error('Erro ao conectar ao banco de dados:', error);
+
+    throw error;
+  }
+
+  console.log('Conexão com o banco de dados estabelecida.');
+
+  try {
     const query = 'SELECT * FROM users WHERE cpf = $1';
     const result = await client.query(query, [cpf]);
 
@@ -97,4 +124,5 @@ export const handler = async (event: EventData) => {
 
 if (env === 'development') {
   handler({ cpf: '12345678900' }).then(console.log);
+  handler({ cpf: '123' }).then(console.log);
 }
