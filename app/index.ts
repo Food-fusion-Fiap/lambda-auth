@@ -58,8 +58,6 @@ type EventData = {
 export const handler = async (event: EventData) => {
   console.log('Iniciando função Lambda...', event);
 
-  const { cpf } = event;
-
   let config;
 
   // Obter configurações do banco de dados
@@ -99,7 +97,7 @@ export const handler = async (event: EventData) => {
 
   try {
     const query = 'SELECT * FROM users WHERE cpf = $1';
-    const result = await client.query(query, [cpf]);
+    const result = await client.query(query, [event.cpf]);
 
     if (result.rows.length === 0) {
       return {
