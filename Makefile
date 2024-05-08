@@ -12,3 +12,6 @@ logs:
 
 login:
 	docker-compose run -w /application lambda-auth /bin/bash
+
+compile:
+	npm run build && cd dist && zip -r ./lambda_function.zip . && cd ..
