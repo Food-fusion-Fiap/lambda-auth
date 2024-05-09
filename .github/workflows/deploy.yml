@@ -11,5 +11,5 @@ jobs:
       - name: Trigger Terraform Workflow
         uses: peter-evans/repository-dispatch@v3
         with:
-          repository: CAVAh/terraform-lambda
+          repository: Food-Fusion-Fiap/terraform-lambda
           event-type: trigger-terraform
