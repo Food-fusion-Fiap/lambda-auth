@@ -1,28 +1,7 @@
-import 'source-map-support/register';
-import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 import { Client } from 'pg';
 
 // Configuração do ambiente
 const env = process.env.NODE_ENV || 'development';
-
-// Configuração do cliente SSM
-const ssmClient = new SSMClient({ region: 'us-east-1' });
-
-// Função para obter parâmetro do SSM
-async function getSSMParameter(parameterName: string): Promise<string> {
-  const command = new GetParameterCommand({
-    Name: `/food_fusion/${parameterName}`,
-    WithDecryption: true,
-  });
-
-  const response = await ssmClient.send(command);
-
-  if (!response.Parameter?.Value) {
-    throw new Error(`Não foi possível encontrar o parâmetro ${parameterName} no SSM.`);
-  }
-
-  return response.Parameter.Value;
-}
 
 async function getConfig() {
   if (env === 'development') {
@@ -36,11 +15,11 @@ async function getConfig() {
 
   console.log('Obtendo configurações do banco de dados...');
 
-  const RDS_ENDPOINT = (await getSSMParameter('db_host')).replace(':5432', '');
+  const RDS_ENDPOINT = process.env.RDS_ENDPOINT.replace(':5432', '');
   console.log('RDS_ENDPOINT:', RDS_ENDPOINT);
-  const RDS_DATABASE_NAME = await getSSMParameter('db_name');
-  const RDS_USER = await getSSMParameter('db_username');
-  const RDS_PASSWORD = await getSSMParameter('db_password');
+  const RDS_DATABASE_NAME = process.env.RDS_DATABASE_NAME;
+  const RDS_USER = process.env.RDS_USER;
+  const RDS_PASSWORD = process.env.RDS_PASSWORD;
 
   return {
     RDS_ENDPOINT,
@@ -111,6 +90,8 @@ export const handler = async (event: EventData) => {
       body: JSON.stringify(result.rows),
     };
   } catch (error) {
+    console.error('Erro ao buscar o usuário:', error);
+
     return {
       statusCode: 500,
       body: JSON.stringify({ message: 'Ocorreu um erro ao buscar o usuário.' }),
