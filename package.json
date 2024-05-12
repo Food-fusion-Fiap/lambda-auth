@@ -6,9 +6,11 @@
     "start": "node dist/app/index.js"
   },
   "dependencies": {
+    "jsonwebtoken": "^9.0.2",
     "pg": "^8.11.5"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.6",
     "@types/pg": "^8.11.6"
   }
 }
