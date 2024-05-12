@@ -16,7 +16,6 @@ async function getConfig() {
   console.log('Obtendo configurações do banco de dados...');
 
   const RDS_ENDPOINT = process.env.RDS_ENDPOINT.replace(':5432', '');
-  console.log('RDS_ENDPOINT:', RDS_ENDPOINT);
   const RDS_DATABASE_NAME = process.env.RDS_DATABASE_NAME;
   const RDS_USER = process.env.RDS_USER;
   const RDS_PASSWORD = process.env.RDS_PASSWORD;
@@ -42,10 +41,9 @@ export const handler = async (event: EventData) => {
   // Obter configurações do banco de dados
   try {
     config = await getConfig();
-
-    console.log('Configurações do banco de dados:', config);
   } catch (error) {
     console.error('Erro ao obter configurações do banco de dados:', error);
+
     return {
       statusCode: 500,
       body: JSON.stringify({ message: 'Ocorreu um erro ao buscar as configurações do banco de dados.' }),
