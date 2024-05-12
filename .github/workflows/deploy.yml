@@ -1,15 +1,44 @@
-name: Trigger Terraform Workflow
+name: Update Lambda
 on:
   push:
     branches:
       - master
 
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
 jobs:
-  trigger_another_workflow:
+  update_lambda:
+    name: 'Update Lambda'
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
     steps:
-      - name: Trigger Terraform Workflow
-        uses: peter-evans/repository-dispatch@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
         with:
-          repository: Food-Fusion-Fiap/terraform-lambda
-          event-type: trigger-terraform
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --production
+
+      - name: Build TypeScript
+        run: npm run build
+        
+      - name: Create ZIP file
+        run: zip -r lambda_function.zip .
+        working-directory: dist
+
+      - name: Deploy Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name food-fusion-auth \
+            --zip-file fileb://dist/lambda_function.zip \
+            --region us-east-1
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
