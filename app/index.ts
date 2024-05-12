@@ -1,30 +1,34 @@
+import jwt from 'jsonwebtoken';
 import { Client } from 'pg';
 
 // Configuração do ambiente
 const env = process.env.NODE_ENV || 'development';
 
 async function getConfig() {
+  console.log('Obtendo configurações do banco de dados...');
+
   if (env === 'development') {
     return {
       RDS_ENDPOINT: 'postgres.cl4qcumy8f7j.us-east-1.rds.amazonaws.com',
       RDS_DATABASE_NAME: 'postgres',
       RDS_USER: 'postgres',
       RDS_PASSWORD: 'foobarbaz',
+      JWT_SECRET: 'mysecret',
     }
   }
-
-  console.log('Obtendo configurações do banco de dados...');
 
   const RDS_ENDPOINT = process.env.RDS_ENDPOINT.replace(':5432', '');
   const RDS_DATABASE_NAME = process.env.RDS_DATABASE_NAME;
   const RDS_USER = process.env.RDS_USER;
   const RDS_PASSWORD = process.env.RDS_PASSWORD;
+  const JWT_SECRET = process.env.JWT_SECRET;
 
   return {
     RDS_ENDPOINT,
     RDS_DATABASE_NAME,
     RDS_USER,
     RDS_PASSWORD,
+    JWT_SECRET,
   };
 }
 
@@ -35,7 +39,6 @@ type EventData = {
 // Função Lambda
 export const handler = async (event: EventData) => {
   console.log('Iniciando função Lambda...', event);
-
   let config;
 
   // Obter configurações do banco de dados
@@ -63,11 +66,15 @@ export const handler = async (event: EventData) => {
   });
 
   try {
+    console.log('Conectando ao banco de dados...');
     await client.connect();
   } catch (error) {
     console.error('Erro ao conectar ao banco de dados:', error);
 
-    throw error;
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Ocorreu um erro ao conectar ao banco de dados.' }),
+    };
   }
 
   console.log('Conexão com o banco de dados estabelecida.');
@@ -76,16 +83,23 @@ export const handler = async (event: EventData) => {
     const query = 'SELECT * FROM users WHERE cpf = $1';
     const result = await client.query(query, [event.cpf]);
 
-    if (result.rows.length === 0) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: 'Usuário não encontrado.' }),
-      };
+    const options: jwt.SignOptions = {
+      expiresIn: '30m', // Token expires in 30 minutes
+    };
+
+    let payload = {
+      userId: null as any,
+    };
+
+    if (result.rows.length) {
+      payload.userId = result.rows[0].id;
     }
+
+    const token = jwt.sign(payload, config.JWT_SECRET, options);
 
     return {
       statusCode: 200,
-      body: JSON.stringify(result.rows),
+      body: JSON.stringify({ token }),
     };
   } catch (error) {
     console.error('Erro ao buscar o usuário:', error);
