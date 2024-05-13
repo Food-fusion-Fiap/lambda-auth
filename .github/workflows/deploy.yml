@@ -5,7 +5,7 @@ on:
       - master
 
 jobs:
-  trigger_another_workflow:
+  trigger_terraform_lambda:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Terraform Workflow
@@ -13,4 +13,14 @@ jobs:
         with:
           token: ${{ secrets.PAT }}
           repository: Food-Fusion-Fiap/terraform-lambda
+          event-type: trigger-terraform
+          
+  trigger_terraform_apigateway:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Terraform Workflow
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PAT }}
+          repository: Food-Fusion-Fiap/terraform-apigateway
           event-type: trigger-terraform
