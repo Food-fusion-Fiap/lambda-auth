@@ -47,7 +47,6 @@ export const handler = async (event: AuthenticateEvent) => {
   try {
     // Obter configurações do banco de dados
     const config = await getConfig();
-    console.log('Configurações do banco de dados', config);
 
     // Conectar ao banco de dados
     const client = new Client({
