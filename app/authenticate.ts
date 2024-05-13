@@ -1,27 +1,48 @@
+import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 import jwt from 'jsonwebtoken';
 import { Client } from 'pg';
 
 // Configuração do ambiente
 const env = process.env.NODE_ENV || 'development';
 
+// Configuração do cliente SSM
+const ssmClient = new SSMClient({ region: 'us-east-1' });
+
+// Função para obter parâmetro do SSM
+async function getSSMParameter(parameterName: string): Promise<string> {
+  const command = new GetParameterCommand({
+    Name: `/food_fusion/${parameterName}`,
+    WithDecryption: true,
+  });
+
+  const response = await ssmClient.send(command);
+
+  if (!response.Parameter?.Value) {
+    throw new Error(`Não foi possível encontrar o parâmetro ${parameterName} no SSM.`);
+  }
+
+  return response.Parameter.Value;
+}
+
 async function getConfig() {
   console.log('Obtendo configurações do banco de dados...');
 
   if (env === 'development') {
     return {
-      RDS_ENDPOINT: 'postgres.cl4qcumy8f7j.us-east-1.rds.amazonaws.com',
-      RDS_DATABASE_NAME: 'postgres',
-      RDS_USER: 'postgres',
-      RDS_PASSWORD: 'foobarbaz',
-      JWT_SECRET: 'mysecret',
+      RDS_ENDPOINT: process.env.RDS_ENDPOINT,
+      RDS_DATABASE_NAME: process.env.RDS_DATABASE_NAME,
+      RDS_USER: process.env.RDS_USER,
+      RDS_PASSWORD: process.env.RDS_PASSWORD,
+      JWT_SECRET: process.env.JWT_SECRET,
     }
   }
 
-  const RDS_ENDPOINT = process.env.RDS_ENDPOINT.replace(':5432', '');
-  const RDS_DATABASE_NAME = process.env.RDS_DATABASE_NAME;
-  const RDS_USER = process.env.RDS_USER;
-  const RDS_PASSWORD = process.env.RDS_PASSWORD;
-  const JWT_SECRET = process.env.JWT_SECRET;
+  const RDS_ENDPOINT = 'postgres.c9emy44wan4g.us-east-1.rds.amazonaws.com';
+  console.log('RDS_ENDPOINT:', RDS_ENDPOINT);
+  const RDS_DATABASE_NAME = 'postgres';
+  const RDS_USER = 'postgres';
+  const RDS_PASSWORD = 'rootroot';
+  const JWT_SECRET = "mysecret";
 
   return {
     RDS_ENDPOINT,
@@ -44,6 +65,7 @@ export const handler = async (event: EventData) => {
   // Obter configurações do banco de dados
   try {
     config = await getConfig();
+    console.log('Configurações do banco de dados', config);
   } catch (error) {
     console.error('Erro ao obter configurações do banco de dados:', error);
 
@@ -87,7 +109,7 @@ export const handler = async (event: EventData) => {
       expiresIn: '30m', // Token expires in 30 minutes
     };
 
-    let payload = {
+    let payload: UserJWT = {
       userId: null as any,
     };
 
@@ -99,7 +121,7 @@ export const handler = async (event: EventData) => {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ token }),
+      body: token,
     };
   } catch (error) {
     console.error('Erro ao buscar o usuário:', error);
