@@ -64,6 +64,7 @@ export const handler = async (event: EventData) => {
   // Obter configurações do banco de dados
   try {
     config = await getConfig();
+    console.log('Configurações do banco de dados', config);
   } catch (error) {
     console.error('Erro ao obter configurações do banco de dados:', error);
 
@@ -119,7 +120,7 @@ export const handler = async (event: EventData) => {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ token }),
+      body: token,
     };
   } catch (error) {
     console.error('Erro ao buscar o usuário:', error);
