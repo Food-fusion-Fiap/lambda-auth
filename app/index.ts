@@ -120,7 +120,7 @@ export const handler = async (event: EventData) => {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ token }),
+      body: token,
     };
   } catch (error) {
     console.error('Erro ao buscar o usuário:', error);
